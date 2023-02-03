@@ -1,0 +1,334 @@
+#include "parser.hpp"
+#include "vm.hpp"
+
+bool vm_parser::parse_file( const char* file, std::uintptr_t* program )
+{
+	/* Reset for good measure */
+	this->reset( );
+	/* Open `file` */
+	stream.open( file, std::ios::in );
+	/* Check for error */
+	if ( !stream.is_open( ) )
+	{
+		this->has_error = true;
+		/* Add error */
+		errors.push_back( "Failed to open file" );
+		/* Return false */
+		return false;
+	}
+
+	/* Set our current line */
+	current_line = 0;
+
+	/* Create program vector */
+	std::vector<std::uint8_t> program_vector;
+
+	/* Read every line */
+	std::string line;
+	while( std::getline( stream, line ) )
+	{
+		/* Increment line count */
+		current_line++;
+		current_program_line = program_vector.size( );
+		/* Check if we're parsing a label */
+		std::size_t end_pos = line.find(':');
+		if ( end_pos != std::string::npos )
+		{
+			this->handle_label( line );
+			continue;
+		}
+		/* Parse tokens */
+		std::vector<std::string> tokens = get_tokens( line );
+		/* Check if we have any, if not, go to next */
+		if( tokens.empty( ) )
+		{
+			continue;
+		}
+		/* Parse instruction */
+		std::uint8_t instruction = parse_instruction( tokens[0] );
+		/* Add instruction to program */
+		program_vector.push_back( instruction );
+		/* If there is 2 tokens, it's going to have a constant */
+		std::size_t token_count = tokens.size( );
+		if ( token_count == 2 )
+		{
+			std::int64_t constant = 0;
+			/* Check if second token contains an alphabetical character */
+			if (std::any_of(tokens[1].begin( ), tokens[1].end( ), [](char c) { return std::isalpha(c); }))
+			{
+				/* Attempt to parse register */
+				if( instruction == (std::uint8_t)stack_vm::vm_instruction::push || instruction == (std::uint8_t)stack_vm::vm_instruction::pop )
+				{
+					std::uint8_t reg = parse_register( tokens[1], true );
+					/* Check if valid */
+					if (reg != 0xFF)
+					{
+						/* Increment instruction byte by '0x1' to convert to 'reg' instruction */
+						instruction++;
+						/* Remove last instruction from program vector */
+						program_vector.pop_back( );
+						/* Push instruction and register */
+						program_vector.push_back( instruction );
+						program_vector.push_back( reg );
+						/* Nothing more to do */
+						continue;
+					}
+				}
+				
+
+				/* Parse label */
+				std::size_t label = parse_label( tokens[1] );
+				/* Calculate distance based on current position */
+				std::int64_t distance = label - ( current_program_line + sizeof(std::uint8_t) + sizeof(std::size_t) );
+				constant = distance;
+			}
+			else
+			{
+				/* Parse constant */
+				constant = parse_constant(tokens[1]);
+			}
+
+			/* Write all 8 bytes to program vector */
+			for (std::size_t i = 0; i < sizeof(std::size_t); i++)
+			{
+				/* Get byte */
+				std::uint8_t byte = (constant >> (i * 8)) & 0xFF;
+				/* Add to program vector */
+				program_vector.push_back(byte);
+			}
+		}
+	}
+
+	this->finished_first_pass = true;
+
+	/* Perform second pass for symbol table */
+	if ( this->requires_second_pass )
+	{
+		/* Loop through our update symbol table */
+		for (auto& [symbol, line] : symbol_refs)
+		{
+			/* Find symbol in symbol table */
+			auto it = symbol_table.find( symbol );
+			/* If symbol doesn't exist, throw error */
+			if ( it == symbol_table.end( ) )
+			{
+				this->has_error = true;
+				/* Add error */
+				errors.push_back( "Symbol '" + symbol + "' does not exist" );
+				/* Continue */
+				continue;
+			}
+
+			/* Get write location in program_vector */
+			std::size_t write_location = line + sizeof( std::uint8_t );
+			/* Calculate distance based on current position */
+			std::int64_t distance = it->second - ( write_location + sizeof(std::size_t) );
+			/* Write all 8 bytes to program vector */
+			for ( std::size_t i = 0; i < sizeof( std::size_t ); i++ )
+			{
+				/* Get byte */
+				std::uint8_t byte = (distance >> (i * 8) ) & 0xFF;
+				/* Write to write location in program vector */
+				program_vector[write_location + i] = byte;
+			}
+		}
+		
+	}
+	
+
+	/* Allocate memory for program */
+	*program = (std::uintptr_t)malloc( program_vector.size( ) );
+	/* Copy program vector to program */
+	std::copy( program_vector.begin( ), program_vector.end( ), (std::uint8_t*)*program );
+
+	return !this->has_error;
+}
+
+std::vector<std::string> vm_parser::get_tokens( std::string line )
+{
+	std::vector<std::string> ret;
+	/* Ensure current line and stream is good */
+	if( this->current_line < 0 || line.empty( ) )
+		return ret;
+
+	/* Convert all tabs (\t) to spaces */
+	std::replace( line.begin( ), line.end( ), '\t', ' ' );
+		
+	std::string token;
+	std::istringstream token_stream( line );
+
+	/* Parse all tokens */
+	while ( std::getline( token_stream, token, ' ' ) )
+	{
+		if ( token.find( '#' ) != std::string::npos )
+			break;
+		if( token.empty( ) )
+			continue;
+		ret.push_back( token );
+	}
+
+	/* If we have more than 2 tokens, there is an error */
+	if ( ret.size(  ) > 2 )
+	{
+		this->has_error = true;
+		this->errors.push_back( "Too many tokens on line " + std::to_string( this->current_line ) );
+	}
+
+	/* Return our tokens */
+	return ret;
+}
+
+bool vm_parser::handle_label( std::string line )
+{
+	/* Ensure line contains a ':' */
+	std::size_t end_pos = line.find( ':' );
+	if (end_pos == std::string::npos )
+		return false;
+	/* Remove ':' from the line */
+	std::string label = line.substr( 0, end_pos );
+
+	/* Ensure label is not empty */
+	if( label.empty( ) )
+	{
+		this->has_error = true;
+		this->errors.push_back("Empty label on line " + std::to_string(this->current_line));
+		return false;
+	}
+
+	/* Check for any non alphanumeric characters in the line */
+	for (char c : label)
+	{
+		if (!std::isalnum(c))
+		{
+			this->has_error = true;
+			this->errors.push_back("Invalid character in label on line " + std::to_string(this->current_line));
+			return false;
+		}
+	}
+
+	/* Add symbol to symbol table */
+	this->symbol_table[ label ] = this->current_program_line;
+	
+	return true;
+}
+
+std::size_t vm_parser::parse_constant( std::string constant )
+{
+	/* Attempt to convert `constant` to std::size_t */
+	try
+	{
+		return std::stoull( constant );
+	}
+	catch ( std::exception& e )
+	{
+		this->has_error = true;
+		this->errors.push_back( "Invalid constant on line " + std::to_string( this->current_line ) );
+		return 0;
+	}
+}
+
+std::uint8_t vm_parser::parse_instruction( std::string instruction )
+{
+	/* Search for 'instruction' in stack_vm::instruction_map */
+	auto it = stack_vm::instruction_map.find( instruction );
+	if ( it == stack_vm::instruction_map.end( ) )
+	{
+		this->has_error = true;
+		this->errors.push_back("Invalid instruction on line " + std::to_string( this->current_line ) );
+		return (std::uint8_t)stack_vm::vm_instruction::invalid;
+	}
+	return (std::uint8_t)( it->second );
+}
+
+std::uint8_t vm_parser::parse_register( std::string reg, bool no_except )
+{
+	/* If reg doesn't start with 'r', return */
+	if ( reg[0] != 'r' )
+	{
+		if ( !no_except )
+		{
+			/* Throw error */
+			this->has_error = true;
+			this->errors.push_back("Invalid register on line " + std::to_string(this->current_line));
+		}
+		return 0xFF;
+	}
+
+	/* Find register in map */
+	auto it = stack_vm::register_map.find( reg );
+	if ( it == stack_vm::register_map.end( ) )
+	{
+		/* Throw error */
+		this->has_error = true;
+		this->errors.push_back( "Invalid register on line " + std::to_string( this->current_line ) );
+		return 0xFF;
+	}
+	
+	return (std::uint8_t)( it->second );
+}
+
+std::size_t vm_parser::parse_label( std::string label )
+{
+	/* Ensure label is not empty */
+	if ( label.empty( ) )
+	{
+		this->has_error = true;
+		this->errors.push_back("Empty label on line " + std::to_string(this->current_line));
+		return 0;
+	}
+
+	/* Check for any non alphanumeric characters in the line */
+	for (char c : label)
+	{
+		if (!std::isalnum(c))
+		{
+			this->has_error = true;
+			this->errors.push_back("Invalid character in label on line " + std::to_string(this->current_line));
+			return 0;
+		}
+	}
+
+	/* Search for label in symbol table */
+	auto it = this->symbol_table.find( label );
+	if ( it == this->symbol_table.end( ) )
+	{
+		/* Label has not been stored yet, require second pass */
+		this->requires_second_pass = true;
+		if ( this->finished_first_pass )
+		{
+			/* Label doesn't exist, throw error */
+			this->has_error = true;
+			this->errors.push_back( "Label '" + label + "' does not exist on line " + std::to_string( this->current_line ) );
+		}
+		else
+		{
+			/* Add to references */
+			this->symbol_refs[ label ] = this->current_program_line;
+		}
+		return 0;
+	}
+
+	return it->second;
+}
+
+void vm_parser::reset()
+{
+	/* Reset all file specific variables */
+	this->stream.close( );
+	this->current_line = -1;
+	this->current_program_line = 0;
+	this->has_error = false;
+	this->requires_second_pass = false;
+	this->finished_first_pass = false;
+	this->errors.clear( );
+	this->symbol_refs.clear( );
+	this->symbol_table.clear( );
+}
+
+void vm_parser::display_errors()
+{
+	if ( !this->has_error )
+		return;
+	for( auto err : this->errors )
+		printf("[ ! ] %s\n", err.c_str( ) );
+}

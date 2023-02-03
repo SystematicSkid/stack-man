@@ -1,0 +1,15 @@
+# Test VM, used for testing methods
+main:
+push 8		# Size to write
+push exit	# Value to write
+push 1000	# Size of malloc
+push 2		# Malloc index
+syscall		# Syscall
+pop r0		# Preserve buffer in r0
+push r0
+write		# Write to buffer on top of stack
+push 1
+push r0
+read
+exit:
+ret
