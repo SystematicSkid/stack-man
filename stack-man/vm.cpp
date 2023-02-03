@@ -126,9 +126,16 @@ std::int32_t stack_vm::execute( std::uintptr_t program )
 			jump( *reinterpret_cast<std::int64_t*>( (ctx->get_pc( )  + sizeof( vm_instruction ) ) ) );
 			break;
 		case vm_instruction::jz:
+		{
+			/* Store pc */
+			std::uintptr_t pc = ctx->get_pc( );
 			/* Jump to a location if the top of the stack is zero */
 			jz( *reinterpret_cast<std::int64_t*>( (ctx->get_pc( ) + sizeof( vm_instruction)) ) );
+			/* If pc didn't change, next inst */
+			if ( pc == ctx->get_pc( ) )
+				ctx->set_pc( ctx->get_pc( ) + sizeof( vm_instruction ) + sizeof( std::int64_t ) );
 			break;
+		}
 		case vm_instruction::jnz:
 			/* Jump to a location if the top of the stack is not zero */
 			jnz( *reinterpret_cast<std::int64_t*>( (ctx->get_pc ( ) + sizeof( vm_instruction ) ) ) );
@@ -369,6 +376,16 @@ void stack_vm::jump( std::int64_t dst )
 
 void stack_vm::jz( std::int64_t dst )
 {
+	/* Set flags according to result */
+	/* Flags are 1 byte, 8 bits */
+	/* 0000 0000 */
+	/* CF OF SF ZF are the only ones used */
+	/* Pop flags off stack */
+	std::size_t flags = pop( );
+	/* Read ZF flag */
+	std::size_t zf = ( flags >> 3 ) & 0x1;
+	if ( zf )
+		jump( dst );
 }
 
 void stack_vm::jnz( std::int64_t dst )
@@ -397,7 +414,7 @@ void stack_vm::syscall( )
 			str.push_back(character);
 			character = (char)pop( );
 		}
-		printf( "%s\n", str.c_str( ) );
+		printf( "%s", str.c_str( ) );
 		break;
 	}
 	case vm_syscall::get_input:

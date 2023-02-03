@@ -30,18 +30,18 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program )
 		/* Increment line count */
 		current_line++;
 		current_program_line = program_vector.size( );
-		/* Check if we're parsing a label */
-		std::size_t end_pos = line.find(':');
-		if ( end_pos != std::string::npos )
-		{
-			this->handle_label( line );
-			continue;
-		}
 		/* Parse tokens */
 		std::vector<std::string> tokens = get_tokens( line );
 		/* Check if we have any, if not, go to next */
 		if( tokens.empty( ) )
 		{
+			continue;
+		}
+		/* Check if we're parsing a label */
+		std::size_t end_pos = line.find(':');
+		if ( end_pos != std::string::npos )
+		{
+			this->handle_label( line );
 			continue;
 		}
 		/* Parse instruction */
@@ -53,8 +53,10 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program )
 		if ( token_count == 2 )
 		{
 			std::int64_t constant = 0;
-			/* Check if second token contains an alphabetical character */
-			if (std::any_of(tokens[1].begin( ), tokens[1].end( ), [](char c) { return std::isalpha(c); }))
+			/* Check if second token contains an alphabetical character and doesn't start with '0x' */
+			
+			if (std::any_of(tokens[1].begin( ), tokens[1].end( ), [](char c) { return std::isalpha(c); }) 
+				&& tokens[1].find("0x") == std::string::npos)
 			{
 				/* Attempt to parse register */
 				if( instruction == (std::uint8_t)stack_vm::vm_instruction::push || instruction == (std::uint8_t)stack_vm::vm_instruction::pop )
@@ -217,7 +219,11 @@ std::size_t vm_parser::parse_constant( std::string constant )
 	/* Attempt to convert `constant` to std::size_t */
 	try
 	{
-		return std::stoull( constant );
+		/* Parse hex */
+		if( constant.find("0x") != std::string::npos )
+			return std::stoull(constant, nullptr, 16);
+		/* Parse base10 */
+		return std::stoull(constant, nullptr, 10);
 	}
 	catch ( std::exception& e )
 	{
