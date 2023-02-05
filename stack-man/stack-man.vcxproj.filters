@@ -49,5 +49,11 @@
     <None Include="vms\test.vm">
       <Filter>vms</Filter>
     </None>
+    <None Include="vms\strlen.vm">
+      <Filter>vms</Filter>
+    </None>
+    <None Include="vms\strcmp.vm">
+      <Filter>vms</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -14,6 +14,7 @@ private:
 	std::uintptr_t pc = NULL;
 	/* Address of our stack */
 	std::uintptr_t stack = NULL;
+	std::uintptr_t original_stack = NULL;
 	/* Allocated memory for our registers */
 	std::uintptr_t* registers = nullptr;
 public:
@@ -24,4 +25,6 @@ public:
 	std::uintptr_t get_pc( );
 	std::uintptr_t get_stack( );
 	std::uintptr_t get_reg( std::uint8_t reg );
+
+	bool is_stack_empty( );
 };

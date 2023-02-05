@@ -18,7 +18,7 @@ int main( )
 	/* Create parser */
 	vm_parser* parser = new vm_parser( );
 	
-	std::string target_program = "vms\\test.vm";
+	std::string target_program = "vms\\strcmp.vm";
 	
 	std::uintptr_t program = NULL;
 	bool err = parser->parse_file(target_program.c_str( ), &program);

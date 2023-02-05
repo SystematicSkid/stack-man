@@ -5,6 +5,7 @@ vm_ctx::vm_ctx(size_t stack_size)
 {
 	/* Allocate memory for our stack */
 	stack = (std::uintptr_t)malloc( stack_size );
+	original_stack = stack;
 	/* Set our program counter to the start of the stack */
 	pc = stack;
 
@@ -63,4 +64,10 @@ std::uintptr_t vm_ctx::get_reg(std::uint8_t reg)
 	}
 
 	return this->registers[ reg ];
+}
+
+bool vm_ctx::is_stack_empty()
+{
+	/* Return true if the only thing left on the stack is the return value */
+	return stack == ( original_stack - sizeof(std::size_t) );
 }

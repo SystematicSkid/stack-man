@@ -1,0 +1,150 @@
+main:
+# allocate our test string
+push 255 # size
+push 2 # malloc
+syscall
+pop r0
+push 255
+push 2
+syscall
+pop r1
+push 255
+push r0
+push 1
+syscall # Get a string from the user
+
+push 255
+push r1
+push 1
+syscall # Get a string from the user
+
+# String comparison, return 1 if both strings are equal, 0 otherwise
+# Requires the two strings that are being compared to be in buffers on the top of the stack
+strcmp:
+# pop the first string into r0
+pop r0
+# pop the second string into r1
+pop r1
+# Stack should now be empty
+# Get string length of first string
+push r1 # preserve second string
+push r0 # preserve first string
+push r0
+call strlen
+pop r2
+pop r0 # restore first string
+pop r1 # restore second string
+# Preserve string
+push r1
+push r0
+
+# Get string length of second string
+push r1
+call strlen
+pop r3
+pop r0
+pop r1
+push r2
+push r3
+# Check if they're equal
+cmp
+# If they're not equal, return 0
+jnz ret_false
+
+# Initialize our counter
+push 0
+pop r2
+
+# Loop
+loop:
+# Read the byte at the current instead of both strings
+push 1 # size
+push r0 # address
+read
+push 1 # size
+push r1 # address
+read
+# compare the two bytes
+cmp
+# If the bytes are equal, increment the counter
+jz equal
+# The two bytes are not equal, return 0
+push 0
+ret
+equal:
+# Increment the counter
+push 1
+push r2
+add
+pop r2
+# Add to the string pointers
+push 1
+push r0
+add
+pop r0
+push 1
+push r1
+add
+pop r1
+# Check if we have reached the end of the strings
+push 0
+push 1
+push r1
+read
+cmp
+jz end
+# We have not reached the end of the strings, loop
+jump loop
+end:
+# We have reached the end of the strings, return 1
+push 1
+ret
+
+# Assume input string is at top of stack
+strlen:
+# Preserve return address
+pop r5
+# Initialize counter
+push 0
+pop r0
+
+# Initialize pointer
+pop r1
+
+strlen_loop:
+
+# Read character
+push 1	# length to read
+push r1 # pointer
+read	# Read character
+
+# Check if character is null
+push 0
+cmp
+jz strlen_end
+
+# Increment counter
+push r0
+push 1
+add
+pop r0
+
+# Increment pointer
+push r1
+push 1
+add
+pop r1
+
+# Loop
+jump strlen_loop
+
+strlen_end:
+# Return counter
+push r0
+# Restore return address
+push r5
+ret
+
+ret_false:
+push 0
+ret

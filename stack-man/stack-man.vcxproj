@@ -141,6 +141,8 @@
     <ClInclude Include="vm_ctx.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="vms\strcmp.vm" />
+    <None Include="vms\strlen.vm" />
     <None Include="vms\test.vm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

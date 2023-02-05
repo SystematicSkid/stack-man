@@ -82,6 +82,8 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program )
 				std::size_t label = parse_label( tokens[1] );
 				/* Calculate distance based on current position */
 				std::int64_t distance = label - ( current_program_line + sizeof(std::uint8_t) + sizeof(std::size_t) );
+				std::cout << "Symbol: " << tokens[1] << " | Distance: " << distance << " | Write Location: " << program_vector.size() << std::endl;
+				
 				constant = distance;
 			}
 			else
@@ -107,8 +109,14 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program )
 	if ( this->requires_second_pass )
 	{
 		/* Loop through our update symbol table */
-		for (auto& [symbol, line] : symbol_refs)
+		for (auto& [target_symbol, line] : symbol_refs)
 		{
+			std::string symbol = target_symbol;
+			/* If symbol name contains a number as the final character, remove it */
+			if (std::isdigit(symbol.back()))
+			{
+				symbol.pop_back();
+			}
 			/* Find symbol in symbol table */
 			auto it = symbol_table.find( symbol );
 			/* If symbol doesn't exist, throw error */
@@ -120,11 +128,14 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program )
 				/* Continue */
 				continue;
 			}
+			
 
 			/* Get write location in program_vector */
 			std::size_t write_location = line + sizeof( std::uint8_t );
 			/* Calculate distance based on current position */
 			std::int64_t distance = it->second - ( write_location + sizeof(std::size_t) );
+			/* Debug */
+			std::cout << "Symbol: " << symbol << " | Distance: " << distance << " | Write Location: " << write_location << std::endl;
 			/* Write all 8 bytes to program vector */
 			for ( std::size_t i = 0; i < sizeof( std::size_t ); i++ )
 			{
@@ -197,13 +208,19 @@ bool vm_parser::handle_label( std::string line )
 		return false;
 	}
 
-	/* Check for any non alphanumeric characters in the line */
+	/* Check for any non alphanumeric, include underscores characters in the line */
+
+	auto is_valid_char = []( char c )
+	{
+		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
+	};
+	
 	for (char c : label)
 	{
-		if (!std::isalnum(c))
+		if (!is_valid_char(c))
 		{
 			this->has_error = true;
-			this->errors.push_back("Invalid character in label on line " + std::to_string(this->current_line));
+			this->errors.push_back("Invalid character " + std::to_string(c) + " in label on line " + std::to_string(this->current_line));
 			return false;
 		}
 	}
@@ -283,10 +300,15 @@ std::size_t vm_parser::parse_label( std::string label )
 		return 0;
 	}
 
+	auto is_valid_char = [](char c)
+	{
+		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
+	};
+
 	/* Check for any non alphanumeric characters in the line */
 	for (char c : label)
 	{
-		if (!std::isalnum(c))
+		if (!is_valid_char(c))
 		{
 			this->has_error = true;
 			this->errors.push_back("Invalid character in label on line " + std::to_string(this->current_line));
@@ -308,6 +330,14 @@ std::size_t vm_parser::parse_label( std::string label )
 		}
 		else
 		{
+			/* Check if label already exists in tabel */
+			int label_num = 0;
+			while (this->symbol_refs.find(label) != this->symbol_refs.end() )
+			{
+				/* Append label num to label */
+				label += std::to_string( label_num );
+				label_num++;
+			}
 			/* Add to references */
 			this->symbol_refs[ label ] = this->current_program_line;
 		}

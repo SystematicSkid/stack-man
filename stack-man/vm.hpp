@@ -41,6 +41,7 @@ public:
 		jump, // label
 		jz, // label
 		jnz, // label
+		call, // label
 		syscall,
 		ret,
 		invalid = 0xFF
@@ -86,8 +87,11 @@ private:
 	void jump( std::int64_t dst );
 	void jz( std::int64_t dst );
 	void jnz( std::int64_t dst );
+	void call( std::int64_t dst );
 	void syscall( );
 	void ret( );
+
+	std::string get_instruction_name( vm_instruction inst );
 	
 public:
 
@@ -95,7 +99,9 @@ public:
 	static inline std::unordered_map<std::string, vm_instruction> instruction_map
 	{
 		{ "push", vm_instruction::push },
+		{ "push_reg", vm_instruction::push_reg },
 		{ "pop", vm_instruction::pop },
+		{ "pop_reg", vm_instruction::pop_reg },
 		{ "add", vm_instruction::add },
 		{ "sub", vm_instruction::sub },
 		{ "mul", vm_instruction::mul },
@@ -110,6 +116,7 @@ public:
 		{ "jump", vm_instruction::jump },
 		{ "jz", vm_instruction::jz },
 		{ "jnz", vm_instruction::jnz },
+		{ "call", vm_instruction::call },
 		{ "syscall", vm_instruction::syscall },
 		{ "ret", vm_instruction::ret }
 	};

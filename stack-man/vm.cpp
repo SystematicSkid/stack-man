@@ -23,11 +23,16 @@ std::int32_t stack_vm::execute( std::uintptr_t program )
 	/* Read first instruction */
 	vm_instruction inst = *reinterpret_cast<vm_instruction*>( ctx->get_pc( ) );
 	
-	/* Loop until we hit a ret instruction */
-	while ( inst != vm_instruction::ret )
+	/* Execution flag */
+	bool execute = true;
+
+	/* Loop while executing */
+	while ( execute )
 	{
 		/* Update debug info */
 		num_instructions++;
+		printf("[ %p ] %s\n", ctx->get_pc(), get_instruction_name(inst).c_str());
+		
 		/* Switch over instructions */
 		switch (inst)
 		{
@@ -137,8 +142,19 @@ std::int32_t stack_vm::execute( std::uintptr_t program )
 			break;
 		}
 		case vm_instruction::jnz:
+		{
+			/* Store pc */
+			std::uintptr_t pc = ctx->get_pc( );
 			/* Jump to a location if the top of the stack is not zero */
 			jnz( *reinterpret_cast<std::int64_t*>( (ctx->get_pc ( ) + sizeof( vm_instruction ) ) ) );
+			/* If pc didn't change, next inst */
+			if ( pc == ctx->get_pc( ) )
+				ctx->set_pc( ctx->get_pc( ) + sizeof( vm_instruction ) + sizeof( std::int64_t ) );
+			break;
+		}
+		case vm_instruction::call:
+			/* Call dst, no need to set PC, handled by call handler */
+			call( *reinterpret_cast<std::int64_t*>( (ctx->get_pc( ) + sizeof( vm_instruction ) ) ) );
 			break;
 		case vm_instruction::syscall:
 			/* Call a syscall */
@@ -146,6 +162,22 @@ std::int32_t stack_vm::execute( std::uintptr_t program )
 			/* Increment pc */
 			ctx->set_pc( ctx->get_pc( ) + sizeof(vm_instruction) );
 			break;
+		case vm_instruction::ret:
+		{
+			/* If this is our stack cookie, exit */
+			if (ctx->is_stack_empty())
+			{
+				execute = false;
+				break;
+			}
+			/* Pop return address */
+			std::size_t return_address = pop( );
+			printf("Ret: %p\n", return_address);
+			
+			/* Otherwise, jmp to return address */
+			ctx->set_pc( return_address );
+			break;
+		}
 		}
 
 		/* Read next instruction */
@@ -276,6 +308,8 @@ void stack_vm::cmp( )
 	std::size_t op1 = pop( );
 	std::size_t op2 = pop( );
 
+	printf("[ + ] Cmp %d %d\n", op1, op2);
+
 	/* Subtract to get result */
 	std::size_t result = op1 - op2;
 
@@ -326,6 +360,7 @@ void stack_vm::read_mem()
 		/* Add to buffer */
 		buffer |= byte;
 	}
+	printf("Read: %p\n", buffer);
 	/* Push buffer */
 	push( buffer );
 }
@@ -366,6 +401,7 @@ void stack_vm::and_( )
 
 void stack_vm::jump( std::int64_t dst )
 {
+	printf("jmp %p\n", dst);
 	/* Calculate new pc */
 	/* New pc = pc + jmp_size + dst */
 	std::uintptr_t new_pc = this->ctx->get_pc( ) + sizeof( vm_instruction ) + sizeof( std::uintptr_t ) + dst;
@@ -376,8 +412,6 @@ void stack_vm::jump( std::int64_t dst )
 
 void stack_vm::jz( std::int64_t dst )
 {
-	/* Set flags according to result */
-	/* Flags are 1 byte, 8 bits */
 	/* 0000 0000 */
 	/* CF OF SF ZF are the only ones used */
 	/* Pop flags off stack */
@@ -390,6 +424,24 @@ void stack_vm::jz( std::int64_t dst )
 
 void stack_vm::jnz( std::int64_t dst )
 {
+	/* 0000 0000 */
+	/* CF OF SF ZF are the only ones used */
+	/* Pop flags off stack */
+	std::size_t flags = pop( );
+	/* Read ZF flag */
+	std::size_t zf = ( flags >> 3 ) & 0x1;
+	if ( !zf )
+		jump( dst );
+}
+
+void stack_vm::call( std::int64_t dst )
+{
+	/* Get return address */
+	std::size_t return_address = ctx->get_pc( ) + sizeof( std::size_t ) + sizeof( vm_instruction );
+	/* Push return address */
+	push( return_address );
+	/* Jump to dst */
+	jump( dst );
 }
 
 void stack_vm::syscall( )
@@ -451,4 +503,14 @@ void stack_vm::ret( )
 {
 	printf( "[ ! ] End of subroutine...\n" );
 	return;
+}
+
+std::string stack_vm::get_instruction_name(vm_instruction inst)
+{
+	for (auto& [name, instuction] : this->instruction_map)
+	{
+		if (instuction == inst)
+			return name;
+	}
+	return "unknown";
 }
