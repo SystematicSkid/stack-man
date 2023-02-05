@@ -38,7 +38,7 @@ void vm_ctx::set_reg(std::uint8_t reg, std::uintptr_t val)
 	if (reg >= 16)
 	{
 		/* Error */
-		printf( "[ ! ] Attempting to set register out of bounds: %d\n", reg );
+		//printf( "[ ! ] Attempting to set register out of bounds: %d\n", reg );
 		return;
 	}
 	this->registers[ reg ] = val;
@@ -59,7 +59,7 @@ std::uintptr_t vm_ctx::get_reg(std::uint8_t reg)
 	if (reg >= 16)
 	{
 		/* Error */
-		printf( "[ ! ] Attempting to set register out of bounds: %d\n", reg );
+		//printf( "[ ! ] Attempting to set register out of bounds: %d\n", reg );
 		return 0xDEADBEEF;
 	}
 

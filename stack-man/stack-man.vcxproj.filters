@@ -55,5 +55,8 @@
     <None Include="vms\strcmp.vm">
       <Filter>vms</Filter>
     </None>
+    <None Include="vms\password_check.vm">
+      <Filter>vms</Filter>
+    </None>
   </ItemGroup>
 </Project>

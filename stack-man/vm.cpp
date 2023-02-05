@@ -31,7 +31,7 @@ std::int32_t stack_vm::execute( std::uintptr_t program )
 	{
 		/* Update debug info */
 		num_instructions++;
-		printf("[ %p ] %s\n", ctx->get_pc(), get_instruction_name(inst).c_str());
+		//printf("[ %p ] %s\n", ctx->get_pc(), get_instruction_name(inst).c_str());
 		
 		/* Switch over instructions */
 		switch (inst)
@@ -172,7 +172,6 @@ std::int32_t stack_vm::execute( std::uintptr_t program )
 			}
 			/* Pop return address */
 			std::size_t return_address = pop( );
-			printf("Ret: %p\n", return_address);
 			
 			/* Otherwise, jmp to return address */
 			ctx->set_pc( return_address );
@@ -188,7 +187,7 @@ std::int32_t stack_vm::execute( std::uintptr_t program )
 		//printf("[ + ] Top: %p\n", top);
 	}
 
-	printf("[ + ] Executed %d instructions...\n", num_instructions);
+	//printf("[ + ] Executed %d instructions...\n", num_instructions);
 	/* Return value on top of stack */
 	return pop( );
 }
@@ -308,8 +307,6 @@ void stack_vm::cmp( )
 	std::size_t op1 = pop( );
 	std::size_t op2 = pop( );
 
-	printf("[ + ] Cmp %d %d\n", op1, op2);
-
 	/* Subtract to get result */
 	std::size_t result = op1 - op2;
 
@@ -346,7 +343,6 @@ void stack_vm::read_mem()
 	std::size_t size = pop( );
 	if ( size > sizeof(std::size_t) )
 	{
-		printf( "[ ! ] Attempting to read invalid size: %d\n", size );
 		return;
 	}
 
@@ -360,7 +356,6 @@ void stack_vm::read_mem()
 		/* Add to buffer */
 		buffer |= byte;
 	}
-	printf("Read: %p\n", buffer);
 	/* Push buffer */
 	push( buffer );
 }
@@ -376,7 +371,6 @@ void stack_vm::write_mem()
 	
 	if ( size > sizeof(std::size_t) )
 	{
-		printf( "[ ! ] Attempting to write invalid size: %d\n", size );
 		return;
 	}
 	
@@ -401,7 +395,6 @@ void stack_vm::and_( )
 
 void stack_vm::jump( std::int64_t dst )
 {
-	printf("jmp %p\n", dst);
 	/* Calculate new pc */
 	/* New pc = pc + jmp_size + dst */
 	std::uintptr_t new_pc = this->ctx->get_pc( ) + sizeof( vm_instruction ) + sizeof( std::uintptr_t ) + dst;
@@ -450,7 +443,6 @@ void stack_vm::syscall( )
 	vm_syscall syscall_index = static_cast<vm_syscall>( pop( ) );
 	if( syscall_index >= vm_syscall::max )
 	{
-		printf("[ - ] Invalid syscall index: %d\n", syscall_index);
 		return;
 	}
 

@@ -13,7 +13,7 @@ public:
 	~vm_parser( ) = default;
 	
 public:
-	bool parse_file( const char* file, std::uintptr_t* program );
+	bool parse_file( const char* file, std::uintptr_t* program, int* size = nullptr );
 
 	void reset( );
 	void display_errors( );

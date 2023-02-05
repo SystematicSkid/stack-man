@@ -429,3 +429,4 @@ FodyWeavers.xsd
 *.exe
 *.out
 *.app
+stack-man/vms/password_check.vm

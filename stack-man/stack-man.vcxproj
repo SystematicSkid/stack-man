@@ -120,6 +120,8 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,6 +143,7 @@
     <ClInclude Include="vm_ctx.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="vms\password_check.vm" />
     <None Include="vms\strcmp.vm" />
     <None Include="vms\strlen.vm" />
     <None Include="vms\test.vm" />

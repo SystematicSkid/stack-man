@@ -1,7 +1,7 @@
 #include "parser.hpp"
 #include "vm.hpp"
 
-bool vm_parser::parse_file( const char* file, std::uintptr_t* program )
+bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size )
 {
 	/* Reset for good measure */
 	this->reset( );
@@ -82,7 +82,7 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program )
 				std::size_t label = parse_label( tokens[1] );
 				/* Calculate distance based on current position */
 				std::int64_t distance = label - ( current_program_line + sizeof(std::uint8_t) + sizeof(std::size_t) );
-				std::cout << "Symbol: " << tokens[1] << " | Distance: " << distance << " | Write Location: " << program_vector.size() << std::endl;
+				//std::cout << "Symbol: " << tokens[1] << " | Distance: " << distance << " | Write Location: " << program_vector.size() << std::endl;
 				
 				constant = distance;
 			}
@@ -135,12 +135,12 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program )
 			/* Calculate distance based on current position */
 			std::int64_t distance = it->second - ( write_location + sizeof(std::size_t) );
 			/* Debug */
-			std::cout << "Symbol: " << symbol << " | Distance: " << distance << " | Write Location: " << write_location << std::endl;
+			//std::cout << "Symbol: " << symbol << " | Distance: " << distance << " | Write Location: " << write_location << std::endl;
 			/* Write all 8 bytes to program vector */
 			for ( std::size_t i = 0; i < sizeof( std::size_t ); i++ )
 			{
 				/* Get byte */
-				std::uint8_t byte = (distance >> (i * 8) ) & 0xFF;
+				std::uint8_t byte = ( distance >> (i * 8) ) & 0xFF;
 				/* Write to write location in program vector */
 				program_vector[write_location + i] = byte;
 			}
@@ -153,6 +153,9 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program )
 	*program = (std::uintptr_t)malloc( program_vector.size( ) );
 	/* Copy program vector to program */
 	std::copy( program_vector.begin( ), program_vector.end( ), (std::uint8_t*)*program );
+
+	if ( size != nullptr )
+		*size = program_vector.size( );
 
 	return !this->has_error;
 }
