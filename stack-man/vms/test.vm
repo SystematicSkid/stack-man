@@ -1,4 +1,12 @@
 # Test VM, used for testing methods
 main:
-push 1337
+push 0 
+push 10
+pop r0 
+loop:  
+push 1
+add
+push r0
+cmp
+jnz loop
 ret

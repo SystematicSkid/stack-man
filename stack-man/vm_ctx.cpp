@@ -4,7 +4,7 @@
 vm_ctx::vm_ctx(size_t stack_size)
 {
 	/* Allocate memory for our stack */
-	stack = (std::uintptr_t)malloc( stack_size );
+	stack = (std::uintptr_t)malloc( stack_size ) + stack_size;
 	original_stack = stack;
 	/* Set our program counter to the start of the stack */
 	pc = stack;
