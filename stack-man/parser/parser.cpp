@@ -81,7 +81,6 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 						/* Push instruction and register */
 						program_vector.push_back( instruction );
 						program_vector.push_back( reg );
-						printf("Adding reg: %d\n", reg);
 						inst_token->reg = reg;
 						/* Nothing more to do */
 						/* Push instruction token */

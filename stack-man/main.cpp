@@ -24,9 +24,9 @@ int main( )
 
 	/* Create parser */
 	
-	vm_parser* parser = (new vm_parser( ) )->add_pass( new obfuscate_constant_pass( 8 ) );
+	vm_parser* parser = (new vm_parser( ) )->add_pass( new obfuscate_constant_pass( 2 ) );
 	
-	std::string target_program = "vms\\test.vm";
+	std::string target_program = "vms\\password_check.vm";
 	
 	std::uintptr_t program = NULL;
 	std::int32_t size = 0;
@@ -39,31 +39,20 @@ int main( )
 		return 1;
 	}
 
-	for (int i = 0; i < size; i++)
-	{
-		printf("0x%02X, ", *(std::uint8_t*)(program + i));
-	}
+	/* Print all bytes */
+	//for(int i = 0; i < size; i++)
+	//	printf("%02X ", *(std::uint8_t*)(program + i));
+	//printf("\n");
 
-	printf("\n");
 	
 	delete parser;
-	
-	/* Start timing using chrono */
-	auto start = std::chrono::high_resolution_clock::now( );
 
 	/* Create VM */
 	stack_vm* vm = new stack_vm( );
 	/* Execute our program */
 	std::int32_t result = vm->execute( (uintptr_t)program );
-
-	/* End timing using chrono */
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 	
-	/* Print time taken */
-	printf("[ - ] Execution time: %d microseconds\n", duration.count());
-	
-	printf("Result: %d\n", result);
+	printf("\nResult: %d\n", result);
 
 	if (result == 1)
 	{

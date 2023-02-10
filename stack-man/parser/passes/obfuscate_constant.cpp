@@ -9,11 +9,18 @@ bool obfuscate_constant_pass::init()
 
 bool obfuscate_constant_pass::run(std::vector<instruction_token*>& instructions)
 {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<std::size_t> dis(100, 1000);
+	
     for (int i = 0; i < obfuscation_level; i++)
     {
-        /* Iterate through all instructions */
-        for (auto instruction : instructions)
+        /* Iterate through all instructions backwards */
+        for (int k = instructions.size() - 1; k > 0; k--)
         {
+			/* Get instruction */
+			auto& instruction = instructions[k];
+			
             stack_vm::vm_instruction inst = static_cast<stack_vm::vm_instruction>(instruction->instruction);
             /* Check if instruction has constant and is a push */
             if (instruction->has_constant() && inst == stack_vm::vm_instruction::push)
@@ -21,9 +28,7 @@ bool obfuscate_constant_pass::run(std::vector<instruction_token*>& instructions)
                 /* Get constant */
                 std::size_t constant = instruction->constant.value();
                 /* Generate a random number using mt19937 from minimum size_t value to maximum size_t value */
-				std::random_device rd;
-				std::mt19937 gen(rd());
-				std::uniform_int_distribution<std::size_t> dis(std::numeric_limits<std::size_t>::min(), std::numeric_limits<std::size_t>::max());
+				
 				std::size_t random = dis(gen);
                 /* Xor the constant by the random number */
                 std::size_t obfuscated = constant ^ random;

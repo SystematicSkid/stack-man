@@ -31,7 +31,7 @@ std::int32_t stack_vm::execute( std::uintptr_t program )
 	{
 		/* Update debug info */
 		num_instructions++;
-		//printf("[ %p ] %s\n", ctx->get_pc(), get_instruction_name(inst).c_str());
+		printf("[ %p ] %s\n", ctx->get_pc(), get_instruction_name(inst).c_str());
 		
 		/* Switch over instructions */
 		switch (inst)
@@ -187,7 +187,7 @@ std::int32_t stack_vm::execute( std::uintptr_t program )
 		//printf("[ + ] Top: %p\n", top);
 	}
 
-	//printf("[ + ] Executed %d instructions...\n", num_instructions);
+	printf("\n[ + ] Executed %d instructions...\n", num_instructions);
 	/* Return value on top of stack */
 	return pop( );
 }
