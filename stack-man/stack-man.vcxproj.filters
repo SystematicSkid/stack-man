@@ -48,6 +48,9 @@
     <ClCompile Include="parser\passes\obfuscate_constant.cpp">
       <Filter>Source Files\parser\passes</Filter>
     </ClCompile>
+    <ClCompile Include="parser\passes\pass.cpp">
+      <Filter>Source Files\parser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vm_ctx.hpp">

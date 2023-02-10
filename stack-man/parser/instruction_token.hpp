@@ -19,4 +19,5 @@ public:
 	bool has_instruction( );
 	bool has_constant( );
 	bool has_register( ); 
+	std::size_t get_size( );
 };

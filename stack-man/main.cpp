@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <Windows.h>
 #include <cassert>
+#include <chrono>
 
 /* VM */
 #include "vm_ctx.hpp"
@@ -19,10 +20,11 @@ constexpr std::uint8_t password_program[] =
 int main( )
 {
 	printf("[ + ] Stack-Man!\n");
+	srand(time(0));
 
 	/* Create parser */
 	
-	vm_parser* parser = (new vm_parser( ) )->add_pass( new obfuscate_constant_pass( ) );
+	vm_parser* parser = (new vm_parser( ) )->add_pass( new obfuscate_constant_pass( 8 ) );
 	
 	std::string target_program = "vms\\test.vm";
 	
@@ -45,14 +47,23 @@ int main( )
 	printf("\n");
 	
 	delete parser;
-
-	return 0;
 	
+	/* Start timing using chrono */
+	auto start = std::chrono::high_resolution_clock::now( );
 
 	/* Create VM */
 	stack_vm* vm = new stack_vm( );
 	/* Execute our program */
-	std::int32_t result = vm->execute( (uintptr_t)password_program );
+	std::int32_t result = vm->execute( (uintptr_t)program );
+
+	/* End timing using chrono */
+	auto end = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+	
+	/* Print time taken */
+	printf("[ - ] Execution time: %d microseconds\n", duration.count());
+	
+	printf("Result: %d\n", result);
 
 	if (result == 1)
 	{

@@ -1,6 +1,11 @@
 #include "parser.hpp"
 #include "../vm.hpp"
 
+vm_parser::~vm_parser( )
+{
+	reset( );
+}
+
 bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size )
 {
 	/* Reset for good measure */
@@ -45,10 +50,10 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 			continue;
 		}
 		/* Parse instruction */
-		instruction_token inst_token;
-		inst_token.location = current_program_line;
+		instruction_token* inst_token = new instruction_token( );
+		inst_token->location = current_program_line;
 		std::uint8_t instruction = parse_instruction( tokens[0] );
-		inst_token.instruction = instruction;
+		inst_token->instruction = instruction;
 		/* Add instruction to program */
 		program_vector.push_back( instruction );
 		/* If there is 2 tokens, it's going to have a constant */
@@ -69,7 +74,7 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 					if (reg != 0xFF)
 					{
 						/* Increment instruction byte by '0x1' to convert to 'reg' instruction */
-						inst_token.instruction += 1;
+						inst_token->instruction += 1;
 						instruction++;
 						/* Remove last instruction from program vector */
 						program_vector.pop_back( );
@@ -77,7 +82,7 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 						program_vector.push_back( instruction );
 						program_vector.push_back( reg );
 						printf("Adding reg: %d\n", reg);
-						inst_token.reg = reg;
+						inst_token->reg = reg;
 						/* Nothing more to do */
 						/* Push instruction token */
 						this->instructions.push_back(inst_token);
@@ -100,7 +105,7 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 				constant = parse_constant(tokens[1]);
 			}
 			
-			inst_token.constant = constant;
+			inst_token->constant = constant;
 
 			/* Write all 8 bytes to program vector */
 			for (std::size_t i = 0; i < sizeof(std::size_t); i++)
@@ -144,15 +149,15 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 			
 
 			/* Find instruction token at `line` */
-			auto inst_it = std::find_if( this->instructions.begin( ), this->instructions.end( ), [line](const instruction_token& token) { return token.location == line; } );
+			auto inst_it = std::find_if( this->instructions.begin( ), this->instructions.end( ), [line](const instruction_token* token) { return token->location == line; } );
 			/* Get reference to instruction */
-			instruction_token& inst = *inst_it;
+			instruction_token* inst = *inst_it;
 			/* Get write location in program_vector */
 			std::size_t write_location = line + sizeof( std::uint8_t );
 			/* Calculate distance based on current position */
 			std::int64_t distance = it->second - ( write_location + sizeof(std::size_t) );
 			/* Set constant */
-			inst.constant = distance;
+			inst->constant = distance;
 			/* Debug */
 			//std::cout << "Symbol: " << symbol << " | Distance: " << distance << " | Write Location: " << write_location << std::endl;
 			/* Write all 8 bytes to program vector */
@@ -175,13 +180,24 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 			pass->run( instructions );
 	}
 
+	printf("%d\n", instructions.size());
+
+	std::vector<std::uint8_t> new_data;
+	/* Loop through our instructions */
+	for (auto& inst : instructions)
+	{
+		std::vector<std::uint8_t> inst_data = inst->get_data();
+		/* Append to new data */
+		new_data.insert(new_data.end(), inst_data.begin(), inst_data.end());
+	}
+
 	/* Allocate memory for program */
-	*program = (std::uintptr_t)malloc( program_vector.size( ) );
+	*program = (std::uintptr_t)malloc(new_data.size( ) );
 	/* Copy program vector to program */
-	std::copy( program_vector.begin( ), program_vector.end( ), (std::uint8_t*)*program );
+	std::copy(new_data.begin( ), new_data.end( ), (std::uint8_t*)*program );
 
 	if ( size != nullptr )
-		*size = program_vector.size( );
+		*size = new_data.size( );
 
 	return !this->has_error;
 }
@@ -394,6 +410,9 @@ void vm_parser::reset()
 	this->errors.clear( );
 	this->symbol_refs.clear( );
 	this->symbol_table.clear( );
+	/* Delete all instructions */
+	for ( auto& i : this->instructions )
+		delete i;
 	this->instructions.clear( );
 }
 

@@ -17,7 +17,7 @@ class vm_parser
 {
 public:
 	vm_parser( ) = default;
-	~vm_parser( ) = default;
+	~vm_parser( );
 	
 public:
 	bool parse_file( const char* file, std::uintptr_t* program, int* size = nullptr );
@@ -37,7 +37,7 @@ private:
 	std::unordered_map<std::string, std::int32_t> symbol_refs;
 	std::unordered_map<std::string, std::int32_t> symbol_table;
 
-	std::vector<instruction_token> instructions;
+	std::vector<instruction_token*> instructions;
 
 	std::vector<pass*> passes;
 

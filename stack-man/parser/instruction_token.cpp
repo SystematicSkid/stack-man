@@ -5,7 +5,9 @@ std::vector<std::uint8_t> instruction_token::get_data( )
 {
 	/* Ensure we have an instruction */
 	if ( !this->has_instruction( ) )
-		return std::vector<std::uint8_t>( );
+	{
+		return std::vector<std::uint8_t>();
+	}
 	/* Our data vector  */
 	std::vector<std::uint8_t> data;
 	/* Push our instruction onto the vec */
@@ -28,6 +30,7 @@ std::vector<std::uint8_t> instruction_token::get_data( )
 		/* Push our register onto the vec */
 		data.push_back( reg );
 	}
+	return data;
 }
 
 bool instruction_token::has_instruction()
@@ -43,4 +46,11 @@ bool instruction_token::has_constant( )
 bool instruction_token::has_register( )
 {
 	return this->reg.has_value( );
+}
+
+std::size_t instruction_token::get_size( )
+{
+	return	( this->has_instruction( )	? sizeof( std::uint8_t ) : 0 ) +
+			( this->has_constant( )		? sizeof( std::size_t ) : 0 ) +
+			( this->has_register( )		? sizeof( std::uint8_t ) : 0 );
 }
