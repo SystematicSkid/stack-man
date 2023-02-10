@@ -5,6 +5,13 @@
 #include <unordered_map>
 #include <sstream>
 #include <algorithm>
+#include <optional>
+
+/* Tokenization */
+#include "instruction_token.hpp"
+
+/* Passes */
+#include "passes/pass.hpp"
 
 class vm_parser
 {
@@ -14,6 +21,8 @@ public:
 	
 public:
 	bool parse_file( const char* file, std::uintptr_t* program, int* size = nullptr );
+
+	vm_parser* add_pass( pass* pass );
 
 	void reset( );
 	void display_errors( );
@@ -27,6 +36,10 @@ private:
 	std::vector<std::string> errors;
 	std::unordered_map<std::string, std::int32_t> symbol_refs;
 	std::unordered_map<std::string, std::int32_t> symbol_table;
+
+	std::vector<instruction_token> instructions;
+
+	std::vector<pass*> passes;
 
 private:
 	std::vector<std::string> get_tokens( std::string line );

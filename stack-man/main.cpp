@@ -9,7 +9,7 @@
 #include "vm.hpp"
 
 /* Parser */
-//#include "parser.hpp"
+#include "parser/parser.hpp"
 
 constexpr std::uint8_t password_program[] =
 {
@@ -21,10 +21,10 @@ int main( )
 	printf("[ + ] Stack-Man!\n");
 
 	/* Create parser */
-	/*
-	vm_parser* parser = new vm_parser( );
 	
-	std::string target_program = "vms\\password_check.vm";
+	vm_parser* parser = (new vm_parser( ) )->add_pass( new obfuscate_constant_pass( ) );
+	
+	std::string target_program = "vms\\test.vm";
 	
 	std::uintptr_t program = NULL;
 	std::int32_t size = 0;
@@ -45,7 +45,9 @@ int main( )
 	printf("\n");
 	
 	delete parser;
-	*/
+
+	return 0;
+	
 
 	/* Create VM */
 	stack_vm* vm = new stack_vm( );

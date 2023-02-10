@@ -132,13 +132,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="parser.cpp" />
+    <ClCompile Include="parser\instruction_token.cpp" />
+    <ClCompile Include="parser\parser.cpp" />
+    <ClCompile Include="parser\passes\obfuscate_constant.cpp" />
     <ClCompile Include="vm.cpp" />
     <ClCompile Include="vm_ctx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="macros.hpp" />
-    <ClInclude Include="parser.hpp" />
+    <ClInclude Include="parser\instruction_token.hpp" />
+    <ClInclude Include="parser\parser.hpp" />
+    <ClInclude Include="parser\passes\obfuscate_constant.hpp" />
+    <ClInclude Include="parser\passes\pass.hpp" />
     <ClInclude Include="vm.hpp" />
     <ClInclude Include="vm_ctx.hpp" />
   </ItemGroup>

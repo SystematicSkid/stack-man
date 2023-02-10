@@ -16,6 +16,18 @@
     <Filter Include="vms">
       <UniqueIdentifier>{62677826-367e-4ef9-b6b0-4bc197fa6925}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\parser">
+      <UniqueIdentifier>{000584c3-00f5-4506-8769-473ed9ad1611}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\parser\passes">
+      <UniqueIdentifier>{65a3f12b-4f7a-43aa-b694-921ca07ef051}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\parser">
+      <UniqueIdentifier>{314abbef-dbf6-40b5-b984-502702f000be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\parser\passes">
+      <UniqueIdentifier>{dfdd4e33-8178-4c20-b06e-06260418a9dc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -27,8 +39,14 @@
     <ClCompile Include="vm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="parser.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="parser\instruction_token.cpp">
+      <Filter>Source Files\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="parser\parser.cpp">
+      <Filter>Source Files\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="parser\passes\obfuscate_constant.cpp">
+      <Filter>Source Files\parser\passes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -41,8 +59,17 @@
     <ClInclude Include="vm.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="parser.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="parser\instruction_token.hpp">
+      <Filter>Header Files\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="parser\passes\pass.hpp">
+      <Filter>Header Files\parser\passes</Filter>
+    </ClInclude>
+    <ClInclude Include="parser\parser.hpp">
+      <Filter>Header Files\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="parser\passes\obfuscate_constant.hpp">
+      <Filter>Header Files\parser\passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

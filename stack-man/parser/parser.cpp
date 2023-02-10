@@ -1,5 +1,5 @@
 #include "parser.hpp"
-#include "vm.hpp"
+#include "../vm.hpp"
 
 bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size )
 {
@@ -45,7 +45,10 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 			continue;
 		}
 		/* Parse instruction */
+		instruction_token inst_token;
+		inst_token.location = current_program_line;
 		std::uint8_t instruction = parse_instruction( tokens[0] );
+		inst_token.instruction = instruction;
 		/* Add instruction to program */
 		program_vector.push_back( instruction );
 		/* If there is 2 tokens, it's going to have a constant */
@@ -66,13 +69,18 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 					if (reg != 0xFF)
 					{
 						/* Increment instruction byte by '0x1' to convert to 'reg' instruction */
+						inst_token.instruction += 1;
 						instruction++;
 						/* Remove last instruction from program vector */
 						program_vector.pop_back( );
 						/* Push instruction and register */
 						program_vector.push_back( instruction );
 						program_vector.push_back( reg );
+						printf("Adding reg: %d\n", reg);
+						inst_token.reg = reg;
 						/* Nothing more to do */
+						/* Push instruction token */
+						this->instructions.push_back(inst_token);
 						continue;
 					}
 				}
@@ -91,6 +99,8 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 				/* Parse constant */
 				constant = parse_constant(tokens[1]);
 			}
+			
+			inst_token.constant = constant;
 
 			/* Write all 8 bytes to program vector */
 			for (std::size_t i = 0; i < sizeof(std::size_t); i++)
@@ -101,6 +111,9 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 				program_vector.push_back(byte);
 			}
 		}
+		
+		/* Push instruction token */
+		this->instructions.push_back(inst_token);
 	}
 
 	this->finished_first_pass = true;
@@ -113,7 +126,7 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 		{
 			std::string symbol = target_symbol;
 			/* If symbol name contains a number as the final character, remove it */
-			if (std::isdigit(symbol.back()))
+			while (std::isdigit(symbol.back()))
 			{
 				symbol.pop_back();
 			}
@@ -130,10 +143,16 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 			}
 			
 
+			/* Find instruction token at `line` */
+			auto inst_it = std::find_if( this->instructions.begin( ), this->instructions.end( ), [line](const instruction_token& token) { return token.location == line; } );
+			/* Get reference to instruction */
+			instruction_token& inst = *inst_it;
 			/* Get write location in program_vector */
 			std::size_t write_location = line + sizeof( std::uint8_t );
 			/* Calculate distance based on current position */
 			std::int64_t distance = it->second - ( write_location + sizeof(std::size_t) );
+			/* Set constant */
+			inst.constant = distance;
 			/* Debug */
 			//std::cout << "Symbol: " << symbol << " | Distance: " << distance << " | Write Location: " << write_location << std::endl;
 			/* Write all 8 bytes to program vector */
@@ -149,6 +168,13 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 	}
 	
 
+	/* Execute our pass system */
+	for( auto& pass : this->passes )
+	{
+		if( pass->init( ) )
+			pass->run( instructions );
+	}
+
 	/* Allocate memory for program */
 	*program = (std::uintptr_t)malloc( program_vector.size( ) );
 	/* Copy program vector to program */
@@ -158,6 +184,12 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 		*size = program_vector.size( );
 
 	return !this->has_error;
+}
+
+vm_parser* vm_parser::add_pass( pass* pass )
+{
+	this->passes.push_back( pass );
+	return this;
 }
 
 std::vector<std::string> vm_parser::get_tokens( std::string line )
@@ -362,6 +394,7 @@ void vm_parser::reset()
 	this->errors.clear( );
 	this->symbol_refs.clear( );
 	this->symbol_table.clear( );
+	this->instructions.clear( );
 }
 
 void vm_parser::display_errors()

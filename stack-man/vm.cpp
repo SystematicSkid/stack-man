@@ -499,7 +499,7 @@ void stack_vm::ret( )
 
 std::string stack_vm::get_instruction_name(vm_instruction inst)
 {
-	for (auto& [name, instuction] : this->instruction_map)
+	for (auto& [name, instuction] : instruction_map)
 	{
 		if (instuction == inst)
 			return name;
