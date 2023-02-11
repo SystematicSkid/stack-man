@@ -51,6 +51,9 @@
     <ClCompile Include="parser\passes\pass.cpp">
       <Filter>Source Files\parser</Filter>
     </ClCompile>
+    <ClCompile Include="parser\passes\obfuscate_unfolding.cpp">
+      <Filter>Source Files\parser\passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vm_ctx.hpp">
@@ -72,6 +75,9 @@
       <Filter>Header Files\parser</Filter>
     </ClInclude>
     <ClInclude Include="parser\passes\obfuscate_constant.hpp">
+      <Filter>Header Files\parser\passes</Filter>
+    </ClInclude>
+    <ClInclude Include="parser\passes\obfuscate_unfolding.hpp">
       <Filter>Header Files\parser\passes</Filter>
     </ClInclude>
   </ItemGroup>

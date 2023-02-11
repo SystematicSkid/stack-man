@@ -178,8 +178,7 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 		if( pass->init( ) )
 			pass->run( instructions );
 	}
-
-	printf("%d\n", instructions.size());
+	
 
 	std::vector<std::uint8_t> new_data;
 	/* Loop through our instructions */

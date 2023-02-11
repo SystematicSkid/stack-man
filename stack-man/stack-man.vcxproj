@@ -135,6 +135,7 @@
     <ClCompile Include="parser\instruction_token.cpp" />
     <ClCompile Include="parser\parser.cpp" />
     <ClCompile Include="parser\passes\obfuscate_constant.cpp" />
+    <ClCompile Include="parser\passes\obfuscate_unfolding.cpp" />
     <ClCompile Include="parser\passes\pass.cpp" />
     <ClCompile Include="vm.cpp" />
     <ClCompile Include="vm_ctx.cpp" />

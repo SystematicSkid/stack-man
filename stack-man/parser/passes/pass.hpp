@@ -13,7 +13,9 @@ public:
 public:
 	bool insert_before( std::vector<instruction_token>& instructions, std::size_t index, instruction_token token );
 	bool insert_after( std::vector<instruction_token*>& instructions, instruction_token* point, instruction_token* token );
+	bool replace_instruction( std::vector<instruction_token*>& instructions, instruction_token* point, std::vector<instruction_token*> tokens );
 };
 
 /* Passes */
 #include "obfuscate_constant.hpp"
+#include "obfuscate_unfolding.hpp"

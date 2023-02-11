@@ -1,4 +1,5 @@
 #include "instruction_token.hpp"
+#include "../vm.hpp"
 
 
 std::vector<std::uint8_t> instruction_token::get_data( )
@@ -33,24 +34,34 @@ std::vector<std::uint8_t> instruction_token::get_data( )
 	return data;
 }
 
-bool instruction_token::has_instruction()
+const bool instruction_token::has_instruction()
 {
 	return instruction != 0xFF;
 }
 
-bool instruction_token::has_constant( )
+const bool instruction_token::has_constant( )
 {
 	return this->constant.has_value( );
 }
 
-bool instruction_token::has_register( )
+const bool instruction_token::has_register( )
 {
 	return this->reg.has_value( );
 }
 
-std::size_t instruction_token::get_size( )
+const std::size_t instruction_token::get_size( )
 {
 	return	( this->has_instruction( )	? sizeof( std::uint8_t ) : 0 ) +
 			( this->has_constant( )		? sizeof( std::size_t ) : 0 ) +
 			( this->has_register( )		? sizeof( std::uint8_t ) : 0 );
+}
+
+std::string instruction_token::to_string()
+{
+	std::string str = /*"[ " + std::to_string(this->location) + " ] " +*/ stack_vm::get_instruction_name((stack_vm::vm_instruction)this->instruction);
+	if (this->has_constant())
+		str += " " + std::to_string(this->constant.value());
+	if(this->has_register())
+		str += " " + std::to_string(this->reg.value());
+	return str;
 }

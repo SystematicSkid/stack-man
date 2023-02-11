@@ -31,7 +31,7 @@ std::int32_t stack_vm::execute( std::uintptr_t program )
 	{
 		/* Update debug info */
 		num_instructions++;
-		printf("[ %p ] %s\n", ctx->get_pc(), get_instruction_name(inst).c_str());
+		//printf("[ %p ] %s\n", ctx->get_pc(), get_instruction_name(inst).c_str());
 		
 		/* Switch over instructions */
 		switch (inst)
@@ -187,7 +187,7 @@ std::int32_t stack_vm::execute( std::uintptr_t program )
 		//printf("[ + ] Top: %p\n", top);
 	}
 
-	printf("\n[ + ] Executed %d instructions...\n", num_instructions);
+	//printf("\n[ + ] Executed %d instructions...\n", num_instructions);
 	/* Return value on top of stack */
 	return pop( );
 }
@@ -242,7 +242,7 @@ void stack_vm::sub( )
 	std::size_t op2 = pop( );
 
 	/* Push result onto stack */
-	std::size_t result = op1 - op2;
+	std::size_t result = op2 - op1;
 	push( result );
 }
 
@@ -264,7 +264,7 @@ void stack_vm::div()
 	std::size_t op2 = pop( );
 
 	/* Push result onto stack */
-	std::size_t result = op1 / op2;
+	std::size_t result = op2 / op1;
 	push( result );
 }
 

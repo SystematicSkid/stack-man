@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 #include <vector>
+#include <string>
 
 class instruction_token
 {
@@ -16,8 +17,9 @@ public:
 
 public:
 	std::vector<std::uint8_t> get_data( );
-	bool has_instruction( );
-	bool has_constant( );
-	bool has_register( ); 
-	std::size_t get_size( );
+	const bool has_instruction( );
+	const bool has_constant( );
+	const bool has_register( ); 
+	const std::size_t get_size( );
+	std::string to_string( );
 };
