@@ -2,6 +2,22 @@
 #include <algorithm>
 #include <numeric>
 
+bool pass::update_label(std::vector<instruction_token*>& instructions, instruction_token* old_target, instruction_token* new_target)
+{
+    /* Find all labels with old target */
+    for (auto* inst : instructions)
+    {
+        if (inst->has_instruction())
+            continue;
+		label_token* label = (label_token*)inst;
+		if (label->target == old_target)
+		{
+			label->target = new_target;
+		}
+    }
+    return true;
+}
+
 bool pass::insert_before(std::vector<instruction_token>& instructions, std::size_t index, instruction_token token)
 {
 }
@@ -55,6 +71,9 @@ bool pass::replace_instruction(std::vector<instruction_token*>& instructions, in
 		instructions.erase(std::remove_if(instructions.begin(), instructions.end(), [point](auto* instruction) {
 			return instruction == point;
 			}), instructions.end());
+		/* Update label */
+		update_label(instructions, point, tokens[0]);
+
         /* free memory */
         delete point;
         /* Update iterator */

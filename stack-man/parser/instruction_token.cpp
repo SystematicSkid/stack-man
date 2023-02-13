@@ -49,6 +49,11 @@ const bool instruction_token::has_register( )
 	return this->reg.has_value( );
 }
 
+const bool instruction_token::has_label()
+{
+	return this->label.has_value( );
+}
+
 const std::size_t instruction_token::get_size( )
 {
 	return	( this->has_instruction( )	? sizeof( std::uint8_t ) : 0 ) +

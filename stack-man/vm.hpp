@@ -67,12 +67,14 @@ public:
 
 		max
 	};
+public:
+	/* Public instructions */
+	void push( std::size_t val );
+	std::size_t pop( );
 
 private:
 	/* Instructions */
-	void push( std::size_t val );
 	void push_reg( vm_register reg );
-	std::size_t pop( );
 	std::size_t pop_reg( vm_register reg );
 	void add( );
 	void sub( );

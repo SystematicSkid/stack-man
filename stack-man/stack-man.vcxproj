@@ -135,6 +135,7 @@
     <ClCompile Include="parser\instruction_token.cpp" />
     <ClCompile Include="parser\parser.cpp" />
     <ClCompile Include="parser\passes\obfuscate_constant.cpp" />
+    <ClCompile Include="parser\passes\obfuscate_deadcode.cpp" />
     <ClCompile Include="parser\passes\obfuscate_unfolding.cpp" />
     <ClCompile Include="parser\passes\pass.cpp" />
     <ClCompile Include="vm.cpp" />
@@ -145,6 +146,7 @@
     <ClInclude Include="parser\instruction_token.hpp" />
     <ClInclude Include="parser\parser.hpp" />
     <ClInclude Include="parser\passes\obfuscate_constant.hpp" />
+    <ClInclude Include="parser\passes\obfuscate_deadcode.hpp" />
     <ClInclude Include="parser\passes\obfuscate_unfolding.hpp" />
     <ClInclude Include="parser\passes\pass.hpp" />
     <ClInclude Include="vm.hpp" />

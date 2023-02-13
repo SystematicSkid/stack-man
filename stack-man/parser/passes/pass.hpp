@@ -11,6 +11,7 @@ public:
 	virtual bool init( ) = 0;
 	virtual bool run( std::vector<instruction_token*>& instructions ) = 0;
 public:
+	bool update_label(std::vector<instruction_token*>& instructions, instruction_token* old_target, instruction_token* new_target);
 	bool insert_before( std::vector<instruction_token>& instructions, std::size_t index, instruction_token token );
 	bool insert_after( std::vector<instruction_token*>& instructions, instruction_token* point, instruction_token* token );
 	bool replace_instruction( std::vector<instruction_token*>& instructions, instruction_token* point, std::vector<instruction_token*> tokens );

@@ -82,6 +82,15 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 						program_vector.push_back( instruction );
 						program_vector.push_back( reg );
 						inst_token->reg = reg;
+						/* If last instruction is a label, set target */
+						if (!this->instructions.empty())
+						{
+							label_token* last_token = (label_token*)this->instructions.back();
+							if (last_token->instruction == 0xFF)
+							{
+								last_token->target = inst_token;
+							}
+						}
 						/* Nothing more to do */
 						/* Push instruction token */
 						this->instructions.push_back(inst_token);
@@ -92,6 +101,8 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 
 				/* Parse label */
 				std::size_t label = parse_label( tokens[1] );
+				/* Set instruction label */
+				inst_token->label = tokens[1];
 				/* Calculate distance based on current position */
 				std::int64_t distance = label - ( current_program_line + sizeof(std::uint8_t) + sizeof(std::size_t) );
 				//std::cout << "Symbol: " << tokens[1] << " | Distance: " << distance << " | Write Location: " << program_vector.size() << std::endl;
@@ -113,6 +124,15 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 				std::uint8_t byte = (constant >> (i * 8)) & 0xFF;
 				/* Add to program vector */
 				program_vector.push_back(byte);
+			}
+		}
+		/* If last instruction is a label, set target */
+		if (!this->instructions.empty())
+		{
+			label_token* last_token = (label_token*)this->instructions.back();
+			if (last_token->instruction == 0xFF)
+			{
+				last_token->target = inst_token;
 			}
 		}
 		
@@ -177,6 +197,33 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 	{
 		if( pass->init( ) )
 			pass->run( instructions );
+	}
+
+	/* Fix labels and symbols */
+	/* Iterate through all instructions that have a label set */
+	for (auto* inst : this->instructions)
+	{
+		/* Check if instruction has a 'label' set */
+		if ( !inst->has_label( ) )
+			continue;
+		/* 
+		A instruction is a label if: does not have instruction
+		*/
+		/* Find label in instrction table */
+		for (auto& label : this->instructions)
+		{
+			if (label->has_instruction())
+				continue;
+			label_token* label_ptr = (label_token*)label;
+			if (label_ptr->name == inst->label.value())
+			{
+				/* Calculate distance based on current position */
+				std::int64_t distance = label_ptr->target->location - (inst->location + sizeof(std::uint8_t) + sizeof(std::size_t));
+				/* Set constant */
+				inst->constant = distance;
+			}
+				
+		}
 	}
 	
 
@@ -273,6 +320,12 @@ bool vm_parser::handle_label( std::string line )
 			return false;
 		}
 	}
+
+	/* Create new label token */
+	label_token* token = new label_token( );
+	token->name = label;
+	/* Push to instructions */
+	this->instructions.push_back( token );
 
 	/* Add symbol to symbol table */
 	this->symbol_table[ label ] = this->current_program_line;

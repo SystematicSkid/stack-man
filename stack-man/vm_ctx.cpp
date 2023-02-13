@@ -20,7 +20,7 @@ vm_ctx::vm_ctx(size_t stack_size)
 vm_ctx::~vm_ctx( )
 {
 	/* Free our stack */
-	free( (void*)stack );
+	free( (void*)original_stack );
 }
 
 void vm_ctx::set_pc( std::uintptr_t new_pc )

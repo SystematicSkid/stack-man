@@ -14,12 +14,24 @@ public:
 	std::size_t location;
 	std::optional<std::size_t> constant;
 	std::optional<std::uint8_t> reg;
+	std::optional<std::string> label;
 
 public:
 	std::vector<std::uint8_t> get_data( );
 	const bool has_instruction( );
 	const bool has_constant( );
 	const bool has_register( ); 
+	const bool has_label( );
 	const std::size_t get_size( );
 	std::string to_string( );
+};
+
+class label_token : public instruction_token
+{
+public:
+	label_token() = default;
+	~label_token() = default;
+public:
+	std::string name;
+	instruction_token* target;
 };
