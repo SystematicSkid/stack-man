@@ -1,4 +1,5 @@
 #pragma once
+#ifdef _PARSER
 #include "../instruction_token.hpp"
 #include "pass.hpp"
 
@@ -14,3 +15,4 @@ public:
 	bool init( ) override;
 	bool run( std::vector<instruction_token*>& instructions ) override;
 };
+#endif _PARSER

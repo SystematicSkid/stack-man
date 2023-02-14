@@ -1,0 +1,12 @@
+main:
+# top of stack is the thisptr
+# push our offset
+push 8
+# add
+add
+pop r0
+# r0 now contains our address to read
+push 4
+push r0
+read
+ret

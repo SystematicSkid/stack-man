@@ -1,3 +1,4 @@
+#ifdef _PARSER
 #include "instruction_token.hpp"
 #include "../vm.hpp"
 
@@ -58,15 +59,31 @@ const std::size_t instruction_token::get_size( )
 {
 	return	( this->has_instruction( )	? sizeof( std::uint8_t ) : 0 ) +
 			( this->has_constant( )		? sizeof( std::size_t ) : 0 ) +
+			( this->has_label( )		? sizeof( std::size_t ) : 0 ) +
 			( this->has_register( )		? sizeof( std::uint8_t ) : 0 );
 }
 
 std::string instruction_token::to_string()
 {
-	std::string str = /*"[ " + std::to_string(this->location) + " ] " +*/ stack_vm::get_instruction_name((stack_vm::vm_instruction)this->instruction);
+	if (!this->has_instruction())
+	{
+		/* Cast to label token */
+		label_token* label = (label_token*)this;
+		return label->to_string();
+	}
+	std::string str = "[ " + std::to_string(this->location) + " ] " + stack_vm::get_instruction_name((stack_vm::vm_instruction)this->instruction);
 	if (this->has_constant())
 		str += " " + std::to_string(this->constant.value());
 	if(this->has_register())
 		str += " " + std::to_string(this->reg.value());
+	if (this->has_label())
+		str += " " + this->label.value();
 	return str;
 }
+
+std::string label_token::to_string()
+{
+	return /*"[ " + std::to_string(this->location) + " ] " +*/ this->name + ":";
+}
+
+#endif _PARSER

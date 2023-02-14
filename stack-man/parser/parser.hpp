@@ -1,4 +1,5 @@
 #pragma once
+#ifdef _PARSER
 #include <string>
 #include <fstream>
 #include <vector>
@@ -49,3 +50,4 @@ private:
 	std::uint8_t parse_register( std::string reg, bool no_except = true );
 	std::size_t parse_label( std::string label );
 };
+#endif _PARSER

@@ -1,4 +1,5 @@
 #pragma once
+#ifdef _PARSER
 #include <string>
 #include "../instruction_token.hpp"
 #include "pass.hpp"
@@ -20,3 +21,4 @@ private:
 	std::vector<instruction_token*> postfix_to_vm( std::vector<std::string> postfix );
 	std::vector<instruction_token*> unfold_push( instruction_token* instruction, int depth );
 };
+#endif _PARSER

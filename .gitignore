@@ -430,3 +430,4 @@ FodyWeavers.xsd
 *.out
 *.app
 stack-man/vms/password_check.vm
+stack-man/vms/password_check_heavy.hpp

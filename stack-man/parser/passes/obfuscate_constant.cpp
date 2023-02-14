@@ -1,3 +1,4 @@
+#ifdef _PARSER
 #include "obfuscate_constant.hpp"
 #include "../../vm.hpp"
 #include <random>
@@ -69,3 +70,5 @@ bool obfuscate_constant_pass::run(std::vector<instruction_token*>& instructions)
 
     return true;
 }
+
+#endif _PARSER

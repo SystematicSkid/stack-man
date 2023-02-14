@@ -1,4 +1,5 @@
 #pragma once
+#ifdef _PARSER
 #include <optional>
 #include <vector>
 #include <string>
@@ -34,4 +35,7 @@ public:
 public:
 	std::string name;
 	instruction_token* target;
+
+	std::string to_string( );
 };
+#endif _PARSER

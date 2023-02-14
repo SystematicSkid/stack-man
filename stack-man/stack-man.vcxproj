@@ -134,6 +134,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="parser\instruction_token.cpp" />
     <ClCompile Include="parser\parser.cpp" />
+    <ClCompile Include="parser\passes\obfuscate_chunking.cpp" />
     <ClCompile Include="parser\passes\obfuscate_constant.cpp" />
     <ClCompile Include="parser\passes\obfuscate_deadcode.cpp" />
     <ClCompile Include="parser\passes\obfuscate_unfolding.cpp" />
@@ -145,14 +146,17 @@
     <ClInclude Include="macros.hpp" />
     <ClInclude Include="parser\instruction_token.hpp" />
     <ClInclude Include="parser\parser.hpp" />
+    <ClInclude Include="parser\passes\obfuscate_chunking.hpp" />
     <ClInclude Include="parser\passes\obfuscate_constant.hpp" />
     <ClInclude Include="parser\passes\obfuscate_deadcode.hpp" />
     <ClInclude Include="parser\passes\obfuscate_unfolding.hpp" />
     <ClInclude Include="parser\passes\pass.hpp" />
     <ClInclude Include="vm.hpp" />
+    <ClInclude Include="vms\password_check_heavy.hpp" />
     <ClInclude Include="vm_ctx.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="vms\get_field.vm" />
     <None Include="vms\password_check.vm" />
     <None Include="vms\strcmp.vm" />
     <None Include="vms\strlen.vm" />

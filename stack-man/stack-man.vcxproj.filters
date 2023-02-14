@@ -57,6 +57,9 @@
     <ClCompile Include="parser\passes\obfuscate_deadcode.cpp">
       <Filter>Source Files\parser\passes</Filter>
     </ClCompile>
+    <ClCompile Include="parser\passes\obfuscate_chunking.cpp">
+      <Filter>Source Files\parser\passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vm_ctx.hpp">
@@ -86,6 +89,12 @@
     <ClInclude Include="parser\passes\obfuscate_deadcode.hpp">
       <Filter>Header Files\parser\passes</Filter>
     </ClInclude>
+    <ClInclude Include="parser\passes\obfuscate_chunking.hpp">
+      <Filter>Header Files\parser\passes</Filter>
+    </ClInclude>
+    <ClInclude Include="vms\password_check_heavy.hpp">
+      <Filter>vms</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="vms\test.vm">
@@ -98,6 +107,9 @@
       <Filter>vms</Filter>
     </None>
     <None Include="vms\password_check.vm">
+      <Filter>vms</Filter>
+    </None>
+    <None Include="vms\get_field.vm">
       <Filter>vms</Filter>
     </None>
   </ItemGroup>

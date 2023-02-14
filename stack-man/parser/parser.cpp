@@ -1,3 +1,7 @@
+/* Only compile file if `_PARSER` is define */
+#ifdef _PARSER
+
+
 #include "parser.hpp"
 #include "../vm.hpp"
 
@@ -113,9 +117,10 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 			{
 				/* Parse constant */
 				constant = parse_constant(tokens[1]);
+				inst_token->constant = constant;
+				
 			}
 			
-			inst_token->constant = constant;
 
 			/* Write all 8 bytes to program vector */
 			for (std::size_t i = 0; i < sizeof(std::size_t); i++)
@@ -141,55 +146,6 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 	}
 
 	this->finished_first_pass = true;
-
-	/* Perform second pass for symbol table */
-	if ( this->requires_second_pass )
-	{
-		/* Loop through our update symbol table */
-		for (auto& [target_symbol, line] : symbol_refs)
-		{
-			std::string symbol = target_symbol;
-			/* If symbol name contains a number as the final character, remove it */
-			while (std::isdigit(symbol.back()))
-			{
-				symbol.pop_back();
-			}
-			/* Find symbol in symbol table */
-			auto it = symbol_table.find( symbol );
-			/* If symbol doesn't exist, throw error */
-			if ( it == symbol_table.end( ) )
-			{
-				this->has_error = true;
-				/* Add error */
-				errors.push_back( "Symbol '" + symbol + "' does not exist" );
-				/* Continue */
-				continue;
-			}
-			
-
-			/* Find instruction token at `line` */
-			auto inst_it = std::find_if( this->instructions.begin( ), this->instructions.end( ), [line](const instruction_token* token) { return token->location == line; } );
-			/* Get reference to instruction */
-			instruction_token* inst = *inst_it;
-			/* Get write location in program_vector */
-			std::size_t write_location = line + sizeof( std::uint8_t );
-			/* Calculate distance based on current position */
-			std::int64_t distance = it->second - ( write_location + sizeof(std::size_t) );
-			/* Set constant */
-			inst->constant = distance;
-			/* Debug */
-			//std::cout << "Symbol: " << symbol << " | Distance: " << distance << " | Write Location: " << write_location << std::endl;
-			/* Write all 8 bytes to program vector */
-			for ( std::size_t i = 0; i < sizeof( std::size_t ); i++ )
-			{
-				/* Get byte */
-				std::uint8_t byte = ( distance >> (i * 8) ) & 0xFF;
-				/* Write to write location in program vector */
-				program_vector[write_location + i] = byte;
-			}
-		}
-		
-	}
 	
 
 	/* Execute our pass system */
@@ -197,6 +153,15 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 	{
 		if( pass->init( ) )
 			pass->run( instructions );
+	}
+
+	/* Apply fix for all locations */
+	std::size_t current_location = 0;
+	for (auto* inst : this->instructions)
+	{
+		inst->location = current_location;
+		current_location += inst->get_size();
+		//printf("%s\n", inst->to_string().c_str());
 	}
 
 	/* Fix labels and symbols */
@@ -219,6 +184,7 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 			{
 				/* Calculate distance based on current position */
 				std::int64_t distance = label_ptr->target->location - (inst->location + sizeof(std::uint8_t) + sizeof(std::size_t));
+				//printf("Label %s, distance %d\n", inst->label.value().c_str(), distance);
 				/* Set constant */
 				inst->constant = distance;
 			}
@@ -474,3 +440,5 @@ void vm_parser::display_errors()
 	for( auto err : this->errors )
 		printf("[ ! ] %s\n", err.c_str( ) );
 }
+
+#endif

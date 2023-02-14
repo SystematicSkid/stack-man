@@ -1,3 +1,4 @@
+#ifdef _PARSER
 #include "obfuscate_unfolding.hpp"
 #include "../../vm.hpp"
 #include <random>
@@ -290,3 +291,5 @@ std::vector<instruction_token*> obfuscate_unfolding_pass::unfold_push( instructi
 	/* Return instructions */
 	return instructions;
 }
+
+#endif _PARSER

@@ -1,3 +1,4 @@
+#ifdef _PARSER
 #include "obfuscate_deadcode.hpp"
 #include "../../vm.hpp"
 #include <random>
@@ -42,3 +43,5 @@ signed int obfuscate_deadcode_pass::get_instruction_stack_change(stack_vm::vm_in
 
 	return instruction_stack_change[inst];
 }
+
+#endif _PARSER
