@@ -1,3 +1,4 @@
+#include "../../macros.hpp"
 #ifdef _PARSER
 #include "obfuscate_unfolding.hpp"
 #include "../../vm.hpp"
@@ -178,11 +179,14 @@ std::vector<instruction_token*> obfuscate_unfolding_pass::unfold_push( instructi
 	std::string expression = "";
 	for (int i = 0; i < depth; i++)
 	{
+		/* hacky lolz */
+		retry_switch:
 		/* Pick a random operation */
 		/* 0 = + */
 		/* 1 = - */
 		/* 2 = * */
 		int operation = op_dis(gen);
+		printf("Op: %d\n", operation);
 		int iter = 0;
 		switch (operation)
 		{
@@ -194,8 +198,11 @@ std::vector<instruction_token*> obfuscate_unfolding_pass::unfold_push( instructi
 		{
 			/* Pick a random number */
 			signed long long rand_int = arithmetic_dis_large(gen);
+
+			auto resultant_value = current_value + rand_int;
+
 			/* Ensure the addition won't cause overflow */
-			while (current_value + rand_int > std::numeric_limits<std::size_t>::max())
+			while (current_value + rand_int < current_value)
 			{
 				rand_int = arithmetic_dis_large(gen);
 				iter++;
@@ -215,10 +222,8 @@ std::vector<instruction_token*> obfuscate_unfolding_pass::unfold_push( instructi
 		{
 			/* Pick a random number */
 			signed long long rand_int = arithmetic_dis_large(gen);
-			/* Check if 64-bit integer is negative based on sign bit */
-			
-			/* Ensure the subtraction won't cause underflow */
-			while (current_value - rand_int < 0)
+			/* Ensure result hasn't overflowed */
+			while (current_value - rand_int > current_value)
 			{
 				rand_int = arithmetic_dis_large(gen);
 				iter++;
@@ -227,8 +232,8 @@ std::vector<instruction_token*> obfuscate_unfolding_pass::unfold_push( instructi
 					rand_int = 0;
 					break;
 				}
-					
 			}
+			
 			/* Update current value */ 
 			current_value -= rand_int;
 			/* Prepend addition to expression to get the original value back */
@@ -237,12 +242,19 @@ std::vector<instruction_token*> obfuscate_unfolding_pass::unfold_push( instructi
 		}
 		case 2:
 		{
+			/* If the current value is over 32-bit limit, goto retry_switch */
+			if (current_value > 0x7FFFFFFF)
+				goto retry_switch;
+			
 			/* Pick a random number */
 			signed long long rand_int = arithmetic_dis_small(gen);
-			/* Ensure the multiplication won't cause overflow */
-			while (current_value * rand_int > std::numeric_limits<std::size_t>::max())
+			/* Get result */
+			signed long long resultant_value = current_value * rand_int;
+			/* Ensure result hasn't overflowed */
+			while (resultant_value < current_value)
 			{
 				rand_int = arithmetic_dis_small(gen);
+				resultant_value = current_value * rand_int;
 				iter++;
 				if (iter > 100)
 				{
@@ -250,6 +262,7 @@ std::vector<instruction_token*> obfuscate_unfolding_pass::unfold_push( instructi
 					break;
 				}
 			}
+			
 			/* Update current value */
 			current_value *= rand_int;
 			/* Prepend division to expression to get the original value back */
@@ -265,8 +278,9 @@ std::vector<instruction_token*> obfuscate_unfolding_pass::unfold_push( instructi
 	/* Prepend current value to expression */
 	expression = std::to_string(current_value) + " " + expression;
 	/* Prepend iteration number of parentheses */
-	for (int j = 0; j < depth; j++)
-		expression = "( " + expression;
+	expression = std::string(depth, '(') + expression;
+
+	printf("Expression: %s\n", expression.c_str());
 	
 	/* 
 		Regex to parse the expression into a vector of strings

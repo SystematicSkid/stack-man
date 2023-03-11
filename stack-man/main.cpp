@@ -5,12 +5,14 @@
 #include <cassert>
 #include <chrono>
 
+#include "macros.hpp"
+
 /* VM */
 #include "vm_ctx.hpp"
 #include "vm.hpp"
 
 /* Parser */
-//#include "parser/parser.hpp"
+#include "parser/parser.hpp"
 
 /* Our VM */
 #include "vms/password_check_heavy.hpp"
@@ -48,42 +50,53 @@ public:
 	}
 };
 
+std::size_t test_fnv_hash(char* first, std::size_t len)
+{
+	std::size_t val = 2166136261U;
+	for (std::size_t i = 0; i < len; i++)
+	{
+		val ^= static_cast<std::size_t>(first[i]);
+		val *= 16777619U;
+	}
+	return val;
+}
 
-//bool test_program(std::string target_program, std::size_t expected_result)
-//{
-//	for (int i = 0; i < 100; i++)
-//	{
-//		vm_parser* parser = (new vm_parser())
-//			->add_pass(new obfuscate_unfolding_pass(3/*iter*/, 3/*depth*/))
-//			->add_pass( new obfuscate_constant_pass( 4 ) )
-//			;
-//		
-//
-//		std::uintptr_t program = NULL;
-//		std::int32_t size = 0;
-//		bool err = parser->parse_file(target_program.c_str(), &program, &size);
-//
-//		if (!err)
-//		{
-//			printf("[ - ] Failed to parse program!\n");
-//			parser->display_errors();
-//			return 1;
-//		}
-//
-//		delete parser;
-//
-//		/* Create VM */
-//		stack_vm* vm = new stack_vm();
-//		/* Execute our program */
-//		std::int32_t result = vm->execute((uintptr_t)program);
-//		/* Delete program */
-//		delete[](std::uint8_t*)program;
-//		//delete vm;
-//		if (result != expected_result)
-//			return false;
-//	}
-//	return true;
-//}
+
+bool test_program(std::string target_program, std::size_t expected_result)
+{
+	for (int i = 0; i < 100; i++)
+	{
+		vm_parser* parser = (new vm_parser())
+			->add_pass(new obfuscate_unfolding_pass(3/*iter*/, 3/*depth*/))
+			->add_pass( new obfuscate_constant_pass( 4 ) )
+			;
+		
+
+		std::uintptr_t program = NULL;
+		std::int32_t size = 0;
+		bool err = parser->parse_file(target_program.c_str(), &program, &size);
+
+		if (!err)
+		{
+			printf("[ - ] Failed to parse program!\n");
+			parser->display_errors();
+			return 1;
+		}
+
+		delete parser;
+
+		/* Create VM */
+		stack_vm* vm = new stack_vm();
+		/* Execute our program */
+		std::int32_t result = vm->execute((uintptr_t)program);
+		/* Delete program */
+		delete[](std::uint8_t*)program;
+		//delete vm;
+		if (result != expected_result)
+			return false;
+	}
+	return true;
+}
 
 int main( )
 {
@@ -109,31 +122,32 @@ int main( )
 	//printf("Virtualized: %d (%d ns)\n", c_virtualized, duration.count());
 	//return 0;
 	
-
+	
 	/* Create parser */
 	
-	//vm_parser* parser = (new vm_parser( ) )
-	//	->add_pass( new obfuscate_unfolding_pass( 2/*iter*/, 2/*depth*/ ) )
-	//	->add_pass( new obfuscate_constant_pass( 2 ) )
-	//	->add_pass( new obfuscate_chunking_pass( 2 ) )
-	//	;
-	//
-	//std::string target_program = "vms\\password_check.vm";
-	//
-	//std::uintptr_t program = NULL;
-	//std::int32_t size = 0;
-	//bool err = parser->parse_file(target_program.c_str( ), &program, &size);
-	//
-	//if (!err)
-	//{
-	//	printf( "[ - ] Failed to parse program!\n" );
-	//	parser->display_errors( );
-	//	return 1;
-	//}
-	//
-	//printf("Size: %d\n", size);
-	//
-	///* Write program to `vms\\password_check_heavy.hpp` */
+	vm_parser* parser = (new vm_parser( ) )
+		//->add_pass( new obfuscate_unfolding_pass( 1/*iter*/, 1/*depth*/ ) )
+		//->add_pass( new obfuscate_constant_pass( 2 ) )
+		//->add_pass( new obfuscate_chunking_pass( 2 ) )
+		;
+	
+	std::string target_program = "vms\\fnv1a.vm";
+	
+	std::uintptr_t program = NULL;
+	std::int32_t size = 0;
+	bool err = parser->parse_file(target_program.c_str( ), &program, &size);
+	
+	if (!err)
+	{
+		printf( "[ - ] Failed to parse program!\n" );
+		parser->display_errors( );
+		return 1;
+	}
+	int is_pressing_enter = GetAsyncKeyState(12);
+	
+	printf("Size: %d\n", is_pressing_enter);
+	
+	/* Write program to `vms\\password_check_heavy.hpp` */
 	//std::ofstream out("vms\\password_check_heavy.hpp");
 	//out << "#pragma once\n";
 	//out << "std::uint8_t program[] = {\n";
@@ -147,12 +161,26 @@ int main( )
 	//
 	//return 0;
 
+	delete parser;
+
+	char test_buffer[] = "abcd";
+	std::size_t test_hash = test_fnv_hash(test_buffer, 4);
+	printf("Test Hash: %d\n", test_hash);
+	
+	/* Hash buffer using std::hash */
+	//std::hash<std::string> hasher;
+	//std::size_t hash = hasher("abcd");
+	//printf("Hash: %d\n", hash);
+	
+
 	/* Create VM */
 	stack_vm* vm = new stack_vm( );
+	vm->push(4);
+	vm->push((std::size_t)test_buffer);
 	/* Execute our program */
 	std::int32_t result = vm->execute( (uintptr_t)program );
 	
-	//printf("\nResult: %d\n", result);
+	printf("Result: %d\n", result);
 
 	if (result == 1)
 	{

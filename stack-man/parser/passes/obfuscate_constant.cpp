@@ -1,3 +1,4 @@
+#include "../../macros.hpp"
 #ifdef _PARSER
 #include "obfuscate_constant.hpp"
 #include "../../vm.hpp"

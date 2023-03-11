@@ -156,6 +156,7 @@
     <ClInclude Include="vm_ctx.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="vms\fnv1a.vm" />
     <None Include="vms\get_field.vm" />
     <None Include="vms\password_check.vm" />
     <None Include="vms\strcmp.vm" />

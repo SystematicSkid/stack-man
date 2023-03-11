@@ -1,3 +1,4 @@
+#include "../macros.hpp"
 #ifdef _PARSER
 #include "instruction_token.hpp"
 #include "../vm.hpp"

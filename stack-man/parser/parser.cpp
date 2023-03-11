@@ -1,6 +1,7 @@
+#include "../macros.hpp"
+
 /* Only compile file if `_PARSER` is define */
 #ifdef _PARSER
-
 
 #include "parser.hpp"
 #include "../vm.hpp"
@@ -161,7 +162,7 @@ bool vm_parser::parse_file( const char* file, std::uintptr_t* program, int* size
 	{
 		inst->location = current_location;
 		current_location += inst->get_size();
-		//printf("%s\n", inst->to_string().c_str());
+		printf("%s\n", inst->to_string().c_str());
 	}
 
 	/* Fix labels and symbols */

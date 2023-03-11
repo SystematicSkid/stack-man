@@ -1,3 +1,4 @@
+#include "../../macros.hpp"
 #ifdef _PARSER
 #include "pass.hpp"
 #include <algorithm>

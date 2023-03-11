@@ -1,0 +1,36 @@
+# top of stack:
+# len
+# data
+main:
+pop r2 # data
+pop r3 # len
+push 2166136261
+pop r0
+push 0
+pop r1
+
+loop:
+push r1
+push r3
+cmp
+jz end_loop
+push 1
+push r2
+push r1
+add
+read
+push r0
+xor
+push 16777619
+mul
+pop r0
+push r1
+push 1
+add
+pop r1
+jump loop
+
+end_loop:
+push r0
+ret
+
